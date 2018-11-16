@@ -17,11 +17,13 @@
 // #define WAIT_FOR_DEBUGGER
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using Microsoft.Python.LanguageServer.Services;
 using Microsoft.PythonTools.Analysis.Infrastructure;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using StreamJsonRpc;
 using StreamJsonRpc.Protocol;
 
@@ -37,6 +39,7 @@ namespace Microsoft.Python.LanguageServer.Server {
                 messageFormatter.JsonSerializer.NullValueHandling = NullValueHandling.Ignore;
                 messageFormatter.JsonSerializer.ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor;
                 messageFormatter.JsonSerializer.Converters.Add(new UriConverter());
+                messageFormatter.JsonSerializer.ContractResolver = new IgnoreUnderscoreKeysResolver();
 
                 using (var cin = Console.OpenStandardInput())
                 using (var cout = Console.OpenStandardOutput())
@@ -83,6 +86,20 @@ namespace Microsoft.Python.LanguageServer.Server {
                     Message = exception.Message,
                     Data = exception.StackTrace,
                 };
+            }
+        }
+
+        private class IgnoreUnderscoreKeysResolver : DefaultContractResolver {
+            protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization) {
+                var props = base.CreateProperties(type, memberSerialization);
+
+                foreach (var prop in props) {
+                    if (prop.UnderlyingName.StartsWith('_')) {
+                        prop.Ignored = true;
+                    }
+                }
+
+                return props;
             }
         }
     }
