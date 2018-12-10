@@ -26,6 +26,8 @@ namespace Microsoft.Python.LanguageServer.Services {
         private readonly JsonRpc _rpc;
         private readonly string _plsVersion;
 
+        public Func<string> PythonVersion;
+
         public TelemetryService(JsonRpc rpc) {
             _rpc = rpc;
 
@@ -40,6 +42,12 @@ namespace Microsoft.Python.LanguageServer.Services {
 
         public Task SendTelemetry(TelemetryEvent telemetryEvent) {
             telemetryEvent.Properties["plsVersion"] = _plsVersion;
+
+            var pythonVersion = PythonVersion?.Invoke();
+            if (pythonVersion != null) {
+                telemetryEvent.Properties["pythonVersion"] = pythonVersion;
+            }
+
             return _rpc.NotifyWithParameterObjectAsync("telemetry/event", telemetryEvent);
         }
     }

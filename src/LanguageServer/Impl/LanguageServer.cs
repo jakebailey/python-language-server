@@ -23,6 +23,7 @@ using System.Threading.Tasks;
 using Microsoft.Python.LanguageServer.Services;
 using Microsoft.PythonTools.Analysis;
 using Microsoft.PythonTools.Analysis.Infrastructure;
+using Microsoft.PythonTools.Parsing;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
@@ -61,10 +62,13 @@ namespace Microsoft.Python.LanguageServer.Implementation {
             _ui = services.GetService<IUIService>();
             _rpc = rpc;
             _jsonSerializer = services.GetService<JsonSerializer>();
-            _telemetry = services.GetService<ITelemetryService2>();
 
             var progress = services.GetService<IProgressService>();
 
+            _telemetry = services.GetService<ITelemetryService2>();
+            if (_telemetry is TelemetryService ts) {
+                ts.PythonVersion = () => _server.Analyzer.LanguageVersion.ToVersion().ToString();
+            }
             var rpcTraceListener = new TelemetryRpcTraceListener(_telemetry);
             _rpc.TraceSource.Listeners.Add(rpcTraceListener);
 
