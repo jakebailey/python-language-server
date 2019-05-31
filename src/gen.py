@@ -115,7 +115,7 @@ def create_tests(name, filename, ignored_lines):
                 pass
 
         filt = next_line[:col].lstrip()
-        filt = select_filter(filt, ". {[(")
+        filt = rightmost_token(filt, ". {[(\t@")
 
         args = line.strip()
         func_name = "Line_{0:0{pad}}".format(i + 1, pad=width)
@@ -175,6 +175,7 @@ DEFAULT_TEST_FILES = [
     "precedence",
     "recursion",
     "stdlib",
+    "stubs",
     "sys_path",
     "types",
 ]
@@ -251,13 +252,16 @@ POSTAMBLE = """
         }
 
         protected async Task DoCompletionTest(string module, int lineNum, int col, string args, string filter) {
+            filter = filter.ToLowerInvariant();
             var server = await SharedServer();
 
-            var tests = string.IsNullOrWhiteSpace(args) ? new List<string>() : ParseStringList(args);
+            var tests = string.IsNullOrWhiteSpace(args) ? new List<string>() : ParseStringList(args).Select(s => s.ToLowerInvariant()).ToList();
             var uri = await OpenAndWait(module);
 
             var res = await server.SendCompletion(uri, lineNum, col);
-            var items = res.items?.Select(item => item.insertText).Where(t => t.Contains(filter)).ToList() ?? new List<string>();
+            var items = res.items?.Select(item => item.insertText.ToLowerInvariant())
+                .Where(t => t.Contains(filter))
+                .ToList() ?? new List<string>();
 
             if (tests.Count == 0) {
                 items.Should().BeEmpty();
@@ -336,17 +340,13 @@ def snake_to_camel(s):
     return string.capwords(s, "_").replace("_", "")
 
 
-def select_filter(s, cs):
-    found = False
+def rightmost_token(s, cs):
     for c in cs:
         i = s.rfind(c)
         if i != -1:
-            found = True
             s = s[i + 1 :]
 
-    if found:
-        return s
-    return ""
+    return s
 
 
 def csharp_str(s):
@@ -359,4 +359,3 @@ def csharp_str(s):
 
 if __name__ == "__main__":
     main()
-
