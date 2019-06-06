@@ -49,8 +49,11 @@ namespace Microsoft.Python.LanguageServer.Sources {
                     break;
 
                 case IPythonClassType cls:
+                    var initFunc = cls.GetMember<IPythonFunctionType>("__init__");
+                    var initDoc = initFunc.IsUnknown() ? "{}" : GetSignatureString(initFunc, cls, out _, name: string.Empty);
+
                     var clsDoc = !string.IsNullOrEmpty(cls.Documentation) ? $"\n---\n{cls.MarkdownDoc()}" : string.Empty;
-                    text = $"```\nclass {cls.Name}\n```{clsDoc}";
+                    text = $"```\nclass {cls.Name}{initDoc}\n```{clsDoc}";
                     break;
 
                 case IPythonModule mod:
