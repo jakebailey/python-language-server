@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using Microsoft.Python.Core;
 using Microsoft.Python.Core.Collections;
@@ -135,6 +136,33 @@ namespace Microsoft.Python.Analysis.Core.DependencyResolution {
                 lastEdge = default;
             }
 
+            IImportSearchResult first = null;
+            var fullNameList = fullName.ToList();
+
+            var skip = 0;
+            do {
+                var result = GetImportsFromAbsoluteNameReal(lastEdge, fullNameList, skip, forceAbsolute);
+                if (!(result is ImportNotFound)) {
+                    return result;
+                }
+
+                skip++;
+                lastEdge = lastEdge.Previous;
+                var name = lastEdge.End.Name;
+
+                if (first == null) {
+                    first = result;
+                    fullNameList.Insert(0, name);
+                } else {
+                    fullNameList[0] = name;
+                }
+            } while (!lastEdge.IsFirst);
+
+            return first;
+        }
+
+        [Pure]
+        private IImportSearchResult GetImportsFromAbsoluteNameReal(in Edge lastEdge, in IEnumerable<string> fullName, int skipPrefix, bool forceAbsolute) {
             var fullNameList = fullName.TakeWhile(n => !string.IsNullOrEmpty(n)).ToList();
             if (fullNameList.Count == 1 && lastEdge.IsNonRooted && TryFindNonRootedModule(fullNameList[0], out var moduleImport)) {
                 return moduleImport;
@@ -172,12 +200,12 @@ namespace Microsoft.Python.Analysis.Core.DependencyResolution {
             // VALUE = 42
 
             if (shortestPath.PathLength > 0 && shortestPath.End.IsModule) {
-                var possibleFullName = string.Join(".", fullNameList);
+                var possibleFullName = string.Join(".", fullNameList.Skip(skipPrefix));
                 var rootPath = shortestPath.FirstEdge.End.Name;
                 var existingModuleName = shortestPath.End.Name;
                 var existingModuleFullName = shortestPath.End.FullModuleName;
                 var existingModulePath = shortestPath.End.ModulePath;
-                var remainingNameParts = fullNameList.Skip(shortestPath.PathLength - 1).ToList();
+                var remainingNameParts = fullNameList.Skip(shortestPath.PathLength - 1 + skipPrefix).ToList();
                 return new PossibleModuleImport(possibleFullName, rootPath, existingModuleName, existingModuleFullName, existingModulePath, remainingNameParts);
             }
 
