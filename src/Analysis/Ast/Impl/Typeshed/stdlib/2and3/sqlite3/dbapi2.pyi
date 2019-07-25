@@ -1,6 +1,7 @@
 # Filip Hron <filip.hron@gmail.com>
 # based heavily on Andrey Vlasovskikh's python-skeletons https://github.com/JetBrains/python-skeletons/blob/master/sqlite3.py
 
+import os
 import sys
 from typing import Any, Callable, Iterable, Iterator, List, Optional, Text, Tuple, Type, TypeVar, Union
 from datetime import date, time, datetime
@@ -29,48 +30,57 @@ def register_adapters_and_converters(): ...
 
 # The remaining definitions are imported from _sqlite3.
 
-PARSE_COLNAMES = ...  # type: int
-PARSE_DECLTYPES = ...  # type: int
-SQLITE_ALTER_TABLE = ...  # type: int
-SQLITE_ANALYZE = ...  # type: int
-SQLITE_ATTACH = ...  # type: int
-SQLITE_CREATE_INDEX = ...  # type: int
-SQLITE_CREATE_TABLE = ...  # type: int
-SQLITE_CREATE_TEMP_INDEX = ...  # type: int
-SQLITE_CREATE_TEMP_TABLE = ...  # type: int
-SQLITE_CREATE_TEMP_TRIGGER = ...  # type: int
-SQLITE_CREATE_TEMP_VIEW = ...  # type: int
-SQLITE_CREATE_TRIGGER = ...  # type: int
-SQLITE_CREATE_VIEW = ...  # type: int
-SQLITE_DELETE = ...  # type: int
-SQLITE_DENY = ...  # type: int
-SQLITE_DETACH = ...  # type: int
-SQLITE_DROP_INDEX = ...  # type: int
-SQLITE_DROP_TABLE = ...  # type: int
-SQLITE_DROP_TEMP_INDEX = ...  # type: int
-SQLITE_DROP_TEMP_TABLE = ...  # type: int
-SQLITE_DROP_TEMP_TRIGGER = ...  # type: int
-SQLITE_DROP_TEMP_VIEW = ...  # type: int
-SQLITE_DROP_TRIGGER = ...  # type: int
-SQLITE_DROP_VIEW = ...  # type: int
-SQLITE_IGNORE = ...  # type: int
-SQLITE_INSERT = ...  # type: int
-SQLITE_OK = ...  # type: int
-SQLITE_PRAGMA = ...  # type: int
-SQLITE_READ = ...  # type: int
-SQLITE_REINDEX = ...  # type: int
-SQLITE_SELECT = ...  # type: int
-SQLITE_TRANSACTION = ...  # type: int
-SQLITE_UPDATE = ...  # type: int
-adapters = ...  # type: Any
-converters = ...  # type: Any
-sqlite_version = ...  # type: str
-version = ...  # type: str
+PARSE_COLNAMES: int
+PARSE_DECLTYPES: int
+SQLITE_ALTER_TABLE: int
+SQLITE_ANALYZE: int
+SQLITE_ATTACH: int
+SQLITE_CREATE_INDEX: int
+SQLITE_CREATE_TABLE: int
+SQLITE_CREATE_TEMP_INDEX: int
+SQLITE_CREATE_TEMP_TABLE: int
+SQLITE_CREATE_TEMP_TRIGGER: int
+SQLITE_CREATE_TEMP_VIEW: int
+SQLITE_CREATE_TRIGGER: int
+SQLITE_CREATE_VIEW: int
+SQLITE_DELETE: int
+SQLITE_DENY: int
+SQLITE_DETACH: int
+SQLITE_DROP_INDEX: int
+SQLITE_DROP_TABLE: int
+SQLITE_DROP_TEMP_INDEX: int
+SQLITE_DROP_TEMP_TABLE: int
+SQLITE_DROP_TEMP_TRIGGER: int
+SQLITE_DROP_TEMP_VIEW: int
+SQLITE_DROP_TRIGGER: int
+SQLITE_DROP_VIEW: int
+SQLITE_IGNORE: int
+SQLITE_INSERT: int
+SQLITE_OK: int
+SQLITE_PRAGMA: int
+SQLITE_READ: int
+SQLITE_REINDEX: int
+SQLITE_SELECT: int
+SQLITE_TRANSACTION: int
+SQLITE_UPDATE: int
+adapters: Any
+converters: Any
+sqlite_version: str
+version: str
 
 # TODO: adapt needs to get probed
 def adapt(obj, protocol, alternate): ...
 def complete_statement(sql: str) -> bool: ...
-if sys.version_info >= (3, 4):
+if sys.version_info >= (3, 7):
+    def connect(database: Union[bytes, Text, os.PathLike[Text]],
+                timeout: float = ...,
+                detect_types: int = ...,
+                isolation_level: Optional[str] = ...,
+                check_same_thread: bool = ...,
+                factory: Optional[Type[Connection]] = ...,
+                cached_statements: int = ...,
+                uri: bool = ...) -> Connection: ...
+elif sys.version_info >= (3, 4):
     def connect(database: Union[bytes, Text],
                 timeout: float = ...,
                 detect_types: int = ...,
@@ -98,21 +108,21 @@ class Cache(object):
     def get(self, *args, **kwargs) -> None: ...
 
 class Connection(object):
-    DataError = ...  # type: Any
-    DatabaseError = ...  # type: Any
-    Error = ...  # type: Any
-    IntegrityError = ...  # type: Any
-    InterfaceError = ...  # type: Any
-    InternalError = ...  # type: Any
-    NotSupportedError = ...  # type: Any
-    OperationalError = ...  # type: Any
-    ProgrammingError = ...  # type: Any
-    Warning = ...  # type: Any
-    in_transaction = ...  # type: Any
-    isolation_level = ...  # type: Any
-    row_factory = ...  # type: Any
-    text_factory = ...  # type: Any
-    total_changes = ...  # type: Any
+    DataError: Any
+    DatabaseError: Any
+    Error: Any
+    IntegrityError: Any
+    InterfaceError: Any
+    InternalError: Any
+    NotSupportedError: Any
+    OperationalError: Any
+    ProgrammingError: Any
+    Warning: Any
+    in_transaction: Any
+    isolation_level: Any
+    row_factory: Any
+    text_factory: Any
+    total_changes: Any
     def __init__(self, *args, **kwargs): ...
     def close(self) -> None: ...
     def commit(self) -> None: ...
@@ -134,6 +144,10 @@ class Connection(object):
     # set_progress_handler(handler, n) -> see https://docs.python.org/2/library/sqlite3.html#sqlite3.Connection.set_progress_handler
     def set_progress_handler(self, *args, **kwargs) -> None: ...
     def set_trace_callback(self, *args, **kwargs): ...
+    # enable_load_extension and load_extension is not available on python distributions compiled
+    # without sqlite3 loadable extension support. see footnotes https://docs.python.org/3/library/sqlite3.html#f1
+    def enable_load_extension(self, enabled: bool) -> None: ...
+    def load_extension(self, path: str) -> None: ...
     if sys.version_info >= (3, 7):
         def backup(self, target: Connection, *, pages: int = ...,
                    progress: Optional[Callable[[int, int, int], object]] = ..., name: str = ...,
@@ -143,25 +157,25 @@ class Connection(object):
     def __exit__(self, *args, **kwargs): ...
 
 class Cursor(Iterator[Any]):
-    arraysize = ...  # type: Any
-    connection = ...  # type: Any
-    description = ...  # type: Any
-    lastrowid = ...  # type: Any
-    row_factory = ...  # type: Any
-    rowcount = ...  # type: Any
+    arraysize: Any
+    connection: Any
+    description: Any
+    lastrowid: Any
+    row_factory: Any
+    rowcount: Any
     # TODO: Cursor class accepts exactly 1 argument
     # required type is sqlite3.Connection (which is imported as _Connection)
     # however, the name of the __init__ variable is unknown
-    def __init__(self, *args, **kwargs): ...
-    def close(self, *args, **kwargs): ...
+    def __init__(self, *args, **kwargs) -> None: ...
+    def close(self, *args, **kwargs) -> None: ...
     def execute(self, sql: str, parameters: Iterable = ...) -> Cursor: ...
-    def executemany(self, sql: str, seq_of_parameters: Iterable[Iterable]): ...
+    def executemany(self, sql: str, seq_of_parameters: Iterable[Iterable]) -> Cursor: ...
     def executescript(self, sql_script: Union[bytes, Text]) -> Cursor: ...
     def fetchall(self) -> List[Any]: ...
     def fetchmany(self, size: Optional[int] = ...) -> List[Any]: ...
     def fetchone(self) -> Any: ...
-    def setinputsizes(self, *args, **kwargs): ...
-    def setoutputsize(self, *args, **kwargs): ...
+    def setinputsizes(self, *args, **kwargs) -> None: ...
+    def setoutputsize(self, *args, **kwargs) -> None: ...
     def __iter__(self) -> Cursor: ...
     if sys.version_info >= (3, 0):
         def __next__(self) -> Any: ...
@@ -186,7 +200,7 @@ class NotSupportedError(DatabaseError): ...
 class OperationalError(DatabaseError): ...
 
 class OptimizedUnicode(object):
-    maketrans = ...  # type: Any
+    maketrans: Any
     def __init__(self, *args, **kwargs): ...
     def capitalize(self, *args, **kwargs): ...
     def casefold(self, *args, **kwargs): ...

@@ -30,8 +30,6 @@ class Option:
     prefixes: Set[str]
     _short_opts: List[str]
     _long_opts: List[str]
-    # properties
-    takes_value: bool
 
     def __init__(
         self,
@@ -44,7 +42,11 @@ class Option:
     ) -> None:
         ...
 
-    def process(self, value: Any, state: 'ParsingState') -> None:
+    @property
+    def takes_value(self) -> bool:
+        ...
+
+    def process(self, value: Any, state: ParsingState) -> None:
         ...
 
 
@@ -56,7 +58,7 @@ class Argument:
     def __init__(self, dest: str, nargs: int = ..., obj: Optional[Any] = ...) -> None:
         ...
 
-    def process(self, value: Any, state: 'ParsingState') -> None:
+    def process(self, value: Any, state: ParsingState) -> None:
         ...
 
 

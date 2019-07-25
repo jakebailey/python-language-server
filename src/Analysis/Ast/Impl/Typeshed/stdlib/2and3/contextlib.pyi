@@ -2,7 +2,7 @@
 
 from typing import (
     Any, Callable, Generator, IO, Iterable, Iterator, Optional, Type,
-    Generic, TypeVar
+    Generic, TypeVar, overload
 )
 from types import TracebackType
 import sys
@@ -18,6 +18,7 @@ if sys.version_info >= (3, 7):
     from typing import AsyncContextManager as AbstractAsyncContextManager
 
 _T = TypeVar('_T')
+_F = TypeVar('_F', bound=Callable[..., Any])
 
 _ExitFunc = Callable[[Optional[Type[BaseException]],
                       Optional[BaseException],
@@ -25,10 +26,12 @@ _ExitFunc = Callable[[Optional[Type[BaseException]],
 _CM_EF = TypeVar('_CM_EF', ContextManager, _ExitFunc)
 
 if sys.version_info >= (3, 2):
-    class GeneratorContextManager(ContextManager[_T], Generic[_T]):
-        def __call__(self, func: Callable[..., _T]) -> Callable[..., _T]: ...
-    def contextmanager(func: Callable[..., Iterator[_T]]) -> Callable[..., GeneratorContextManager[_T]]: ...
+    class _GeneratorContextManager(ContextManager[_T], Generic[_T]):
+        def __call__(self, func: _F) -> _F: ...
+    def contextmanager(func: Callable[..., Iterator[_T]]) -> Callable[..., _GeneratorContextManager[_T]]: ...
 else:
+    class GeneratorContextManager(ContextManager[_T], Generic[_T]):
+        def __call__(self, func: _F) -> _F: ...
     def contextmanager(func: Callable[..., Iterator[_T]]) -> Callable[..., ContextManager[_T]]: ...
 
 if sys.version_info >= (3, 7):
@@ -91,3 +94,9 @@ if sys.version_info >= (3, 7):
         def pop_all(self: _S) -> _S: ...
         def aclose(self) -> Awaitable[None]: ...
         def __aenter__(self: _S) -> Awaitable[_S]: ...
+
+if sys.version_info >= (3, 7):
+    @overload
+    def nullcontext(enter_result: _T) -> ContextManager[_T]: ...
+    @overload
+    def nullcontext() -> ContextManager[None]: ...
