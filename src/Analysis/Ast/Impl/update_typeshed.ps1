@@ -17,7 +17,7 @@ Expand-Archive $zip $extract -Force
 pushd $extract\typeshed-$hash
 try {
     copy -r -fo stdlib, third_party, LICENSE $target
-	"$hash" >> $target\commit.txt
+	"$hash" | Out-File $target\commit.txt
 } finally {
     popd
 }
