@@ -55,6 +55,18 @@ namespace Microsoft.Python.Parsing {
         private readonly Dictionary<object, NameToken> _names;
         private static readonly object _nameFromBuffer = new object();
 
+        private readonly Dictionary<string, string> _internPool = new Dictionary<string, string>();
+
+        private string InternString(string s) {
+            //return s;
+
+            if (_internPool.TryGetValue(s, out var interned)) {
+                return interned;
+            }
+            _internPool[s] = s;
+            return s;
+        }
+
         // pre-calculated strings for space indentation strings so we usually don't allocate.
         private static readonly string[] SpaceIndentation, TabIndentation;
 
@@ -990,8 +1002,8 @@ namespace Microsoft.Python.Parsing {
             if (isFormatted) {
                 Debug.Assert(LanguageVersion >= PythonLanguageVersion.V36);
 
-                string contents = new string(_buffer, start, length);
-                string openQuotes = new string(quote, isTriple ? 3 : 1);
+                string contents = InternString(new string(_buffer, start, length));
+                string openQuotes = InternString(new string(quote, isTriple ? 3 : 1));
                 if (Verbatim) {
                     return new VerbatimFStringToken(contents, openQuotes, isTriple, isRaw, GetTokenString());
                 } else {
@@ -1028,9 +1040,9 @@ namespace Microsoft.Python.Parsing {
                 }
 
                 if (Verbatim) {
-                    return new VerbatimConstantValueToken(new AsciiString(bytes, new String(data.ToArray())), GetTokenString());
+                    return new VerbatimConstantValueToken(new AsciiString(bytes, InternString(new String(data.ToArray()))), GetTokenString());
                 }
-                return new ConstantValueToken(new AsciiString(bytes, new String(data.ToArray())));
+                return new ConstantValueToken(new AsciiString(bytes, InternString(new String(data.ToArray()))));
             }
         }
 
@@ -2399,7 +2411,7 @@ namespace Microsoft.Python.Parsing {
             Debug.Assert(_tokenEnd != -1, "Token end not marked");
             Debug.Assert(offset >= 0 && offset <= _tokenEnd - _start && length >= 0 && length <= _tokenEnd - _start - offset);
 
-            return new String(_buffer, _start + offset, length);
+            return InternString(new String(_buffer, _start + offset, length));
         }
 
         [Conditional("DEBUG")]
@@ -2457,7 +2469,7 @@ namespace Microsoft.Python.Parsing {
         private void DumpToken() => Console.WriteLine("--> `{0}` {1}", GetTokenString().Replace("\r", "\\r").Replace("\n", "\\n").Replace("\t", "\\t"), TokenSpan);
 
         private void BufferBack(int count = -1) => SeekRelative(count);
-        internal string GetTokenString() => new string(_buffer, _start, _tokenEnd - _start);
+        internal string GetTokenString() => InternString(new string(_buffer, _start, _tokenEnd - _start));
         private int TokenLength => _tokenEnd - _start;
 
         private void SeekRelative(int disp) {

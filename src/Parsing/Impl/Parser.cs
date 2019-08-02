@@ -63,6 +63,18 @@ namespace Microsoft.Python.Parsing {
 
         private static Regex _codingRegex;
 
+        private readonly Dictionary<string, string> _internPool = new Dictionary<string, string>();
+
+        private string InternString(string s) {
+            //return s;
+
+            if (_internPool.TryGetValue(s, out var interned)) {
+                return interned;
+            }
+            _internPool[s] = s;
+            return s;
+        }
+
         #region Construction
 
         private Parser(Tokenizer tokenizer, ErrorSink errorSink, PythonLanguageVersion langVersion, bool verbatim, bool bindRefs, string privatePrefix) {
@@ -346,7 +358,7 @@ namespace Microsoft.Python.Parsing {
                 name = "_" + _privatePrefix + name;
             }
 
-            return name;
+            return InternString(name);
         }
 
         private Name ReadNameMaybeNone(int prevTokenStart, int prevTokenLength) {
