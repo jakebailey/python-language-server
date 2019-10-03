@@ -2,10 +2,10 @@
 
 from typing import Any, Union, Iterable, Optional, Mapping, Sequence, Dict, List, Tuple, overload
 
-CODESIZE = ...  # type: int
-MAGIC = ...  # type: int
-MAXREPEAT = ...  # type: long
-copyright = ...  # type: str
+CODESIZE: int
+MAGIC: int
+MAXREPEAT: long
+copyright: str
 
 class SRE_Match(object):
     def start(self, group: int = ...) -> int:
@@ -21,26 +21,28 @@ class SRE_Match(object):
     def groups(self) -> Tuple[Optional[str], ...]: ...
     def span(self) -> Tuple[int, int]:
         raise IndexError()
+    @property
+    def regs(self) -> Tuple[Tuple[int, int], ...]: ...  # undocumented
 
 class SRE_Scanner(object):
-    pattern = ...  # type: str
+    pattern: str
     def match(self) -> SRE_Match: ...
     def search(self) -> SRE_Match: ...
 
 class SRE_Pattern(object):
-    pattern = ...  # type: str
-    flags = ...  # type: int
-    groups = ...  # type: int
-    groupindex = ...  # type: Mapping[str, int]
-    indexgroup = ...  # type: Sequence[int]
-    def findall(self, source: str, pos: int = ..., endpos: int = ...) -> List[Union[tuple, str]]: ...
-    def finditer(self, source: str, pos: int = ..., endpos: int = ...) -> Iterable[Union[tuple, str]]: ...
+    pattern: str
+    flags: int
+    groups: int
+    groupindex: Mapping[str, int]
+    indexgroup: Sequence[int]
+    def findall(self, source: str, pos: int = ..., endpos: int = ...) -> List[Union[Tuple[Any, ...], str]]: ...
+    def finditer(self, source: str, pos: int = ..., endpos: int = ...) -> Iterable[Union[Tuple[Any, ...], str]]: ...
     def match(self, pattern, pos: int = ..., endpos: int = ...) -> SRE_Match: ...
     def scanner(self, s: str, start: int = ..., end: int = ...) -> SRE_Scanner: ...
     def search(self, pattern, pos: int = ..., endpos: int = ...) -> SRE_Match: ...
     def split(self, source: str, maxsplit: int = ...) -> List[Optional[str]]: ...
-    def sub(self, repl: str, string: str, count: int = ...) -> tuple: ...
-    def subn(self, repl: str, string: str, count: int = ...) -> tuple: ...
+    def sub(self, repl: str, string: str, count: int = ...) -> Tuple[Any, ...]: ...
+    def subn(self, repl: str, string: str, count: int = ...) -> Tuple[Any, ...]: ...
 
 def compile(pattern: str, flags: int, code: List[int],
             groups: int = ...,

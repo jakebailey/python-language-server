@@ -7,7 +7,7 @@ import sys
 
 from typing import (
     List, Iterable, Callable, Any, Tuple, Sequence, NamedTuple, IO,
-    AnyStr, Optional, Union, Set, TypeVar, overload, Type, Protocol
+    AnyStr, Optional, Union, Set, TypeVar, overload, Type, Protocol, Text
 )
 
 if sys.version_info >= (3, 6):
@@ -23,7 +23,7 @@ elif sys.version_info >= (3,):
     _AnyPath = str
     _PathReturn = str
 else:
-    _Path = unicode
+    _Path = Text
     _AnyStr = TypeVar("_AnyStr", str, unicode)
     _AnyPath = TypeVar("_AnyPath", str, unicode)
     _PathReturn = Type[None]
@@ -73,15 +73,17 @@ else:
 def ignore_patterns(*patterns: _Path) -> Callable[[Any, List[_AnyStr]], Set[_AnyStr]]: ...
 
 if sys.version_info >= (3,):
-    _IgnoreFn = Union[None, Callable[[str, List[str]], Iterable[str]], Callable[[_Path, List[str]], Iterable[str]]]
     def copytree(src: _Path, dst: _Path, symlinks: bool = ...,
-                 ignore: _IgnoreFn = ...,
+                 ignore: Union[None,
+                               Callable[[str, List[str]], Iterable[str]],
+                               Callable[[_Path, List[str]], Iterable[str]]] = ...,
                  copy_function: Callable[[str, str], None] = ...,
                  ignore_dangling_symlinks: bool = ...) -> _PathReturn: ...
 else:
-    _IgnoreFn = Union[None, Callable[[AnyStr, List[AnyStr]], Iterable[AnyStr]]]
     def copytree(src: AnyStr, dst: AnyStr, symlinks: bool = ...,
-                 ignore: _IgnoreFn = ...) -> _PathReturn: ...
+                 ignore: Union[None,
+                               Callable[[AnyStr, List[AnyStr]],
+                                        Iterable[AnyStr]]] = ...) -> _PathReturn: ...
 
 if sys.version_info >= (3,):
     @overload

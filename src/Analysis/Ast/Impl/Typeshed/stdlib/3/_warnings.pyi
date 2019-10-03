@@ -1,11 +1,11 @@
-from typing import Any, List, Optional, Type
+from typing import Any, Dict, List, Optional, Tuple, Type
 
-_defaultaction = ...  # type: str
-_onceregistry = ...  # type: dict
-filters = ...  # type: List[tuple]
+_defaultaction: str
+_onceregistry: Dict[Any, Any]
+filters: List[Tuple[Any, ...]]
 
 def warn(message: Warning, category: Optional[Type[Warning]] = ..., stacklevel: int = ...) -> None: ...
 def warn_explicit(message: Warning, category: Optional[Type[Warning]],
                   filename: str, lineno: int,
-                  module: Any = ..., registry: dict = ...,
-                  module_globals: dict = ...) -> None: ...
+                  module: Any = ..., registry: Dict[Any, Any] = ...,
+                  module_globals: Dict[Any, Any] = ...) -> None: ...

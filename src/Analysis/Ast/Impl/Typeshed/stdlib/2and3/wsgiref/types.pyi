@@ -15,16 +15,12 @@
 # you need to use 'WSGIApplication' and not simply WSGIApplication when type
 # hinting your code.  Otherwise Python will raise NameErrors.
 
-from typing import Callable, Dict, Iterable, List, Optional, Tuple, Type, Union, Any, Text, Protocol
-from types import TracebackType
+from sys import _OptExcInfo
+from typing import Callable, Dict, Iterable, List, Any, Text, Protocol, Tuple, Optional
 
-_exc_info = Tuple[Optional[Type[BaseException]],
-                  Optional[BaseException],
-                  Optional[TracebackType]]
-StartResponse = Union[
-    Callable[[Text, List[Tuple[Text, Text]]], Callable[[bytes], None]],
-    Callable[[Text, List[Tuple[Text, Text]], _exc_info], Callable[[bytes], None]]
-]
+class StartResponse(Protocol):
+    def __call__(self, status: str, headers: List[Tuple[str, str]], exc_info: Optional[_OptExcInfo] = ...) -> Callable[[bytes], Any]: ...
+
 WSGIEnvironment = Dict[Text, Any]
 WSGIApplication = Callable[[WSGIEnvironment, StartResponse], Iterable[bytes]]
 
@@ -40,3 +36,9 @@ class ErrorStream(Protocol):
     def flush(self) -> None: ...
     def write(self, s: str) -> None: ...
     def writelines(self, seq: List[str]) -> None: ...
+
+class _Readable(Protocol):
+    def read(self, size: int = ...) -> bytes: ...
+# Optional file wrapper in wsgi.file_wrapper
+class FileWrapper(Protocol):
+    def __call__(self, file: _Readable, block_size: int = ...) -> Iterable[bytes]: ...
