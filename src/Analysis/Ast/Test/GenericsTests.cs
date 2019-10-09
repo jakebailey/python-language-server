@@ -13,7 +13,9 @@
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
 
+using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Python.Analysis.Tests.FluentAssertions;
@@ -1400,10 +1402,10 @@ x = Test().get()
 
         [TestMethod, Priority(0)]
         public async Task GenericPath() {
+            AnalysisTimeout = TimeSpan.FromDays(1);
             const string code = @"
 import pathlib
 
-h = pathlib._PurePathBase
 root = pathlib.Path('/some/directory')
 subdir = root / 'subdir'
 child = subdir / 'file.txt'

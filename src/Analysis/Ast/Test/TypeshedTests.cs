@@ -45,17 +45,16 @@ import sys
 e1, e2, e3 = sys.exc_info()
 ";
             var analysis = await GetAnalysisAsync(code);
-            // def exc_info() -> Tuple[Optional[Type[BaseException]], Optional[BaseException], Optional[TracebackType]]: ...
             var f = analysis.Should()
-                .HaveVariable("e1").OfType(BuiltinTypeId.Type)
-                .And.HaveVariable("e2").OfType("BaseException")
-                .And.HaveVariable("e3").OfType("TracebackType")
+                .HaveVariable("e1").OfType("Union[Type[BaseException], None]")
+                .And.HaveVariable("e2").OfType("Union[BaseException, None]")
+                .And.HaveVariable("e3").OfType("Union[TracebackType, None]")
                 .And.HaveVariable("sys").OfType(BuiltinTypeId.Module)
                 .Which.Should().HaveMember<IPythonFunctionType>("exc_info").Which;
 
             f.Overloads.Should().HaveCount(1);
             f.Overloads[0].GetReturnDocumentation(null)
-                .Should().Be(@"Tuple[Type[BaseException], BaseException, TracebackType]");
+                .Should().Be("Union[Tuple[Type[BaseException], BaseException, TracebackType], Tuple[None, None, None]]");
         }
 
         [TestMethod, Priority(0)]
