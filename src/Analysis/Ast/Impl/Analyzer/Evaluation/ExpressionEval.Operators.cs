@@ -84,8 +84,6 @@ namespace Microsoft.Python.Analysis.Analyzer.Evaluation {
             var left = GetValueFromExpression(binop.Left, lookupOptions) ?? UnknownType;
             var right = GetValueFromExpression(binop.Right, lookupOptions) ?? UnknownType;
 
-            var leftName = left?.GetPythonType()?.Name;
-
             if (left.IsUnknown() && right.IsUnknown()) {
                 // Fast path for when nothing below will give any results.
                 if (op.IsComparison()) {
