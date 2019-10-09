@@ -1402,7 +1402,6 @@ x = Test().get()
 
         [TestMethod, Priority(0)]
         public async Task GenericPath() {
-            AnalysisTimeout = TimeSpan.FromDays(1);
             const string code = @"
 import pathlib
 
