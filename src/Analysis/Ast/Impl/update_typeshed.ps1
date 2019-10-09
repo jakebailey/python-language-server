@@ -4,6 +4,8 @@ $extract = [IO.Path]::GetTempFileName()
 del $extract
 $zip = "$extract.zip"
 $target = $MyInvocation.MyCommand.Definition | Split-Path -Parent | Join-Path -ChildPath "Typeshed"
+
+rm $target -Recurse -Force
 mkdir -f $target, $target\stdlib, $target\third_party;
 
 $commits = Invoke-RestMethod -Uri https://api.github.com/repos/python/typeshed/commits
