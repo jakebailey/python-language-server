@@ -147,6 +147,8 @@ namespace Microsoft.Python.Analysis.Specializations.Typing {
             _members["Type"] = new SpecializedGenericType("Type", CreateType, this);
 
             _members["Generic"] = new SpecializedGenericType("Generic", CreateGenericClassBase, this);
+
+            _members["Text"] = Interpreter.GetBuiltinType(Interpreter.GetUnicodeTypeId());
         }
 
         private string GetMemberDocumentation(string name)
