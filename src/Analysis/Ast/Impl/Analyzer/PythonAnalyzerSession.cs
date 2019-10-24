@@ -586,12 +586,14 @@ namespace Microsoft.Python.Analysis.Analyzer {
 
             var isCanceled = MarkNodeWalked(node);
             var createLibraryAnalysis = !isCanceled &&
-                                        node != null &&
-                                        !node.HasMissingDependencies &&
                                         canHaveLibraryAnalysis &&
-                                        !document.IsOpen &&
-                                        node.HasOnlyWalkedDependencies &&
-                                        node.IsValidVersion;
+                                        !document.IsOpen;
+
+            if (node != null) {
+                createLibraryAnalysis &= !node.HasMissingDependencies &&
+                                         node.HasOnlyWalkedDependencies &&
+                                         node.IsValidVersion;
+            }
 
             if (!createLibraryAnalysis) {
                 return new DocumentAnalysis(document, version, walker.GlobalScope, walker.Eval, walker.StarImportMemberNames);
