@@ -146,6 +146,10 @@ namespace Microsoft.Python.LanguageServer.Formatting {
                 var next = tokens.ElementAtOrDefault(i + 1);
 
                 switch (token.Kind) {
+                    case TokenKind.Error:
+                        builder.Append(token);
+                        break;
+
                     case TokenKind.Comment:
                         builder.EnsureEndsWithWhiteSpace(2);
                         builder.Append(token);

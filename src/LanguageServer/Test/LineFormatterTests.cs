@@ -433,6 +433,16 @@ limit { limit_num}; """"""", line: 5);
             AssertSingleLineFormat("def foo(x,y,/,z,*args,**kwargs)", "def foo(x, y, /, z, *args, **kwargs)");
         }
 
+        [DataRow("'''", "'''")]
+        [DataRow("'''this is a docstring", "'''this is a docstring")]
+        [DataRow("x+'''this is a docstring", "x + '''this is a docstring")]
+        [DataRow("\"", "\"")]
+        [DataRow("\"something", "\"something")]
+        [DataTestMethod, Priority(0)]
+        public void UnclosedStrings(string code, string expected) {
+            AssertSingleLineFormat(code, expected);
+        }
+
         [TestMethod, Priority(0)]
         public void GrammarFile() {
             var src = TestData.GetPath("TestData", "Formatting", "pythonGrammar.py");
