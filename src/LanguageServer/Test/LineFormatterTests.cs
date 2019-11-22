@@ -438,6 +438,7 @@ limit { limit_num}; """"""", line: 5);
         [DataRow("x+'''this is a docstring", "x + '''this is a docstring")]
         [DataRow("\"", "\"")]
         [DataRow("\"something", "\"something")]
+        [DataRow("'''something\nsomething else", "'''something")]
         [DataTestMethod, Priority(0)]
         public void UnclosedStrings(string code, string expected) {
             AssertSingleLineFormat(code, expected);
