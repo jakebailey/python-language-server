@@ -236,48 +236,54 @@ namespace GenTests {"""
 
 POSTAMBLE = """
     public class GenTest : LanguageServerTestBase {
-        private static readonly Dictionary<string, Task<IDocumentAnalysis>> _analysis = new Dictionary<string, Task<IDocumentAnalysis>>();
+        protected struct GenAnalysis {
+            public Task<IDocumentAnalysis> Analysis;
+            public IServiceContainer Services;
+        }
+
+        private static readonly Dictionary<string, GenAnalysis> _analysis = new Dictionary<string, GenAnalysis>();
 
         private static readonly InterpreterConfiguration _interpreter = PythonVersions.LatestAvailable3X;
         private static readonly PythonLanguageVersion _version = _interpreter.Version.ToLanguageVersion();
 
-        private static readonly CompletionSource _cs = new CompletionSource(new PlainTextDocumentationSource(), ServerSettings.completion);
         private static readonly HoverSource _hs = new HoverSource(new PlainTextDocumentationSource());
 
-        static GenTest() {
-            _interpreter.TypeshedPath = TestData.GetDefaultTypeshedPath();
-        }
-
-        protected async Task<IDocumentAnalysis> GetGenAnalysisAsync(string module) {
+        protected async Task<GenAnalysis> GetGenAnalysisAsync(string module) {
             // Create an analyzer per module. This is slower than creating a single
             // analyzer shared between all GenTest instances, but sharing them makes
             // the "types" module fail (due to a bug where the name "types" shadows
             // a builtin module name).
             if (_analysis.TryGetValue(module, out var analysis)) {
-                return await analysis;
+                return analysis;
             }
 
             var root = TestData.GetPath("TestData", "gen", "completion");
 
             var sm = CreateServiceManager();
+            CacheService.Register(sm, null, pathCheck: false);
             sm.AddService(new PythonAnalyzer(sm));
-            sm.AddService(await PythonInterpreter.CreateAsync(_interpreter, root, sm));
+            sm.AddService(await PythonInterpreter.CreateAsync(_interpreter, root, sm, TestData.GetDefaultTypeshedPath()));
             sm.AddService(new RunningDocumentTable(sm));
 
             var src = TestData.GetPath("TestData", "gen", "completion", module + ".py");
-            analysis = GetAnalysisAsync(File.ReadAllText(src), sm, modulePath: src);
+            analysis = new GenAnalysis {
+                Analysis = GetAnalysisAsync(File.ReadAllText(src), sm, modulePath: src),
+                Services = sm
+            };
             _analysis[module] = analysis;
 
-            return await analysis;
+            return analysis;
         }
 
         protected async Task DoCompletionTest(string module, int lineNum, int col, string args, string filter) {
             filter = filter.ToLowerInvariant();
             var tests = string.IsNullOrWhiteSpace(args) ? new List<string>() : ParseStringList(args).Select(s => s.ToLowerInvariant()).ToList();
 
-            var analysis = await GetGenAnalysisAsync(module);
+            var genAnalysis = await GetGenAnalysisAsync(module);
+            var analysis = await genAnalysis.Analysis;
+            var cs = new CompletionSource(new PlainTextDocumentationSource(), ServerSettings.completion, genAnalysis.Services);
 
-            var res = _cs.GetCompletions(analysis, new SourceLocation(lineNum + 1, col + 1));
+            var res = cs.GetCompletions(analysis, new SourceLocation(lineNum + 1, col + 1));
             var items = res?.Completions?.Select(item => item.insertText.ToLowerInvariant())
                 .Where(t => t.ToLowerInvariant().Contains(filter))
                 .ToList() ?? new List<string>();
@@ -294,7 +300,8 @@ POSTAMBLE = """
                 ? new List<string>()
                 : args.Split(' ', options: StringSplitOptions.RemoveEmptyEntries).Select(s => s.EndsWith("()") ? s.Substring(0, s.Length - 2) : s).ToList();
 
-            var analysis = await GetGenAnalysisAsync(module);
+            var genAnalysis = await GetGenAnalysisAsync(module);
+            var analysis = await genAnalysis.Analysis;
 
             var res = _hs.GetHover(analysis, new SourceLocation(lineNum + 1, col + 1));
 
